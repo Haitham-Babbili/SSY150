@@ -1,0 +1,52 @@
+%% Task 1
+close all;
+clear all;
+clc
+
+t=[0:0.1:10*pi];
+signal=sin(t);
+
+[index,quantized,codebook]=quantization(signal);
+
+
+figure()
+set(gcf, 'Position',  [100, 100, 1420, 960])
+plot(t,signal,'linewidth',1.5)
+hold on
+plot(t,quantized,'^')
+xlabel('Time','FontSize',14,'FontWeight','bold')
+ylabel('Frequency','FontSize',14,'FontWeight','bold')
+title('Quantized Signal','FontSize',16,'FontWeight','bold')
+legend('Sin(t)','Quantiz','FontSize',12,'FontWeight','bold')
+%% Task 2
+k=127;                                     % Message length
+packets = packetizer(index,k);
+
+%% Task 3
+% Reed-Solomon encoder
+m=8;                                       % Bits per symbol
+n=2^m-1;                                   % Codeword length
+[codes msgwords] = rs_code(packets,m,k);  % RS encoding
+
+%% Reed-Solomon decoder
+
+dec_msg=rsdec(codes,n,k);                  % decoded packets
+isequal(dec_msg,msgwords);
+
+%% depacketizer
+
+depackets = depacketizer(dec_msg,index);
+
+%% Dequantized
+recon_signal = codebook(depackets.x+1);
+
+figure()
+set(gcf, 'Position',  [100, 100, 1420, 960])
+plot(t,signal,'linewidth',1.5)
+hold on
+plot(t,recon_signal,'>')
+xlabel('Time','FontSize',14,'FontWeight','bold')
+ylabel('Frequency','FontSize',14,'FontWeight','bold')
+title('Original Signal and Dequantized after Depacketization and Reed-Solomon decoder','FontSize',16,'FontWeight','bold')
+legend('Sin(t)','Depacketizer','FontSize',12,'FontWeight','bold')
+
